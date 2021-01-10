@@ -17,7 +17,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(express.static("public"));
 
-mongoose.connect("mongodb://localhost:27017/blogDB",{
+mongoose.connect("",{
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
