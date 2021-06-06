@@ -1,8 +1,7 @@
-//jshint esversion
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
-const _ = require("lodash");
+var _ = require("lodash");
 const mongoose = require("mongoose");
 
 const homeStartingContent = "Lacus vel facilisis volutpat est velit egestas dui id ornare. Semper auctor neque vitae tempus quam. Sit amet cursus sit amet dictum sit amet justo. Viverra tellus in hac habitasse. Imperdiet proin fermentum leo vel orci porta. Donec ultrices tincidunt arcu non sodales neque sodales ut. Mattis molestie a iaculis at erat pellentesque adipiscing. Magnis dis parturient montes nascetur ridiculus mus mauris vitae ultricies. Adipiscing elit ut aliquam purus sit amet luctus venenatis lectus. Ultrices vitae auctor eu augue ut lectus arcu bibendum at. Odio euismod lacinia at quis risus sed vulputate odio ut. Cursus mattis molestie a iaculis at erat pellentesque adipiscing.";
@@ -11,82 +10,74 @@ const contactContent = "Scelerisque eleifend donec pretium vulputate sapien. Rho
 
 const app = express();
 
-app.set('view engine', 'ejs');
+mongoose.connect("mongodb://localhost:27017/blogDB",{useNewUrlParser: true, useUnifiedTopology: true});
 
-app.use(bodyParser.urlencoded({extended: true}));
-
-app.use(express.static("public"));
-
-mongoose.connect("",{
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-
-const postSchema = new mongoose.Schema({
-  title: String,
-  content: String
+const blogSchema = new mongoose.Schema({
+  title:{
+    type: String,
+    required: true
+  },
+  blogContent: String
 });
 
-const Post = mongoose.model("Post",postSchema);
+const Blog = mongoose.model("Blog",blogSchema);
 
-app.get("/", function(req, res){
-  Post.find({} ,function(err, posts){
+app.set('view engine', 'ejs');
+
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
+app.use(express.static("public"));
+
+app.get("/", function(req, res) {
+
+  Blog.find({},function(err,blogs){
     res.render("home", {
-      startingContent: homeStartingContent,
-      posts: posts
-      });
+      FirstContent: homeStartingContent,
+      blogContentFromServer: blogs
+    });
   })
 });
 
-app.get("/about", function(req, res){
-  res.render("about", {aboutContent: aboutContent});
+app.get("/contact", function(req, res) {
+  res.render("contact", {
+    ContactInfo: contactContent
+  });
 });
 
-app.get("/contact", function(req, res){
-  res.render("contact", {contactContent: contactContent});
+app.get("/about", function(req, res) {
+  res.render("about", {
+    AboutContent: aboutContent
+  });
 });
 
-app.get("/compose", function(req, res){
+app.get("/compose", function(req, res) {
   res.render("compose");
 });
 
-app.post("/compose", function(req, res){
-  const post = new Post({
-    title: req.body.postTitle,
-    content: req.body.postBody
+app.post("/compose", function(req, res) {
+  const blog = new Blog({
+    title: req.body.composeTitle,
+    blogContent: req.body.postContent
   });
-
-  post.save(function(err){
+  blog.save(function(err){
     if(!err){
-      res.redirect("/");
+        res.redirect("/");
     }
   });
-
-
-
 });
 
 app.get("/posts/:postId", function(req, res){
-  const requestedTitle = _.lowerCase(req.params.postName);
-  const requestedPostId = req.params.postId;
-  Post.findOne({_id: requestedPostId}, function(err, post){
-   res.render("post", {
-     title: post.title,
-     content: post.content
-   });
- });
-  // post.forEach(function(post){
-  //   const storedTitle = _.lowerCase(post.title);
-  //
-  //   if (storedTitle === requestedTitle) {
-  //     res.render("post", {
-  //       title: post.title,
-  //       content: post.content
-  //     });
-  //   }
-  // });
+
+const requestedPostId = req.params.postId;
+
+  Blog.findOne({_id: requestedPostId}, function(err, post){
+    res.render("post", {Title: post.title, content: post.blogContent  });
+  });
+
 });
 
 app.listen(3000, function() {
   console.log("Server started on port 3000");
 });
+
